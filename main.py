@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.gridspec import GridSpec
 import matplotlib.ticker as ticker
 import time
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from io import BytesIO
 import pandas as pd
 from openpyxl.utils import get_column_letter
@@ -60,9 +60,9 @@ def get_strava_client():
     return client
 
 
-def get_all_activities() -> dict:
+def get_all_activities(start_date: date | None, end_date: date | None) -> dict:
     """
-    Get all historical activities for an athlete.
+    Get all historical activities for an athlete within the date range.
     Store activities by type:
     {
         "run": [
@@ -96,7 +96,10 @@ def get_all_activities() -> dict:
     
     # Fetch all Strava activities
     client = get_strava_client()
-    activities = client.get_activities()
+    activities = client.get_activities(
+        before=datetime(end_date.year, end_date.month, end_date.day), 
+        after=datetime(start_date.year, start_date.month, start_date.day)
+    )
     
     # Classify activities into the following sport types
     activities_map = {
@@ -112,10 +115,6 @@ def get_all_activities() -> dict:
             "id", "type", "workout_type", "sport_type", "name", "distance", "elapsed_time", "moving_time", "start_date"
         ]
         activity_dict = json.loads(activity.model_dump_json(include=to_include)) # dump to JSON first to convert non-JSON serializable types (i.e. datetime) to string
-        
-        # print(f"***Activity Number: {i}***")
-        # print(json.dumps(activity_dict, indent=4))
-        # print()
         
         match activity.sport_type:
             case "Run":
@@ -201,12 +200,24 @@ def get_personal_records(activities_map: dict, top_N: int = 0) -> dict:
                 if top_N > 0:
                     pr_map[distance] = pr_map[distance][:top_N]
             
-    
-    # print("***PERSONAL RECORDS***")
-    # print(json.dumps(pr_map, indent=4))
     write_dict_to_json(pr_map, Path(DATA_DIR), 'personal_records')
     return pr_map
 
+def get_activities_and_prs(start_date: date | None, end_date: date | None, top_N: int = 0) -> tuple[dict, dict]:
+    """
+    Get all activities and the top N race PRs within the specified date range
+
+    Args:
+        start_date (date | None): start of the date range
+        end_date (date | None): end of the date range
+        top_N (int, optional): number of PRs to record for each race distance. Defaults to 0.
+
+    Returns:
+        tuple[dict, dict]: dict of activities & dict of race PRs
+    """
+    activities_map = get_all_activities(start_date, end_date)
+    pr_map = get_personal_records(activities_map, top_N)
+    return activities_map, pr_map
 
 def validate_pr_map(pr_map: dict, top_N: int) -> bool:
     """
@@ -296,91 +307,6 @@ def create_pr_df(personal_records: dict, race: str) -> pd.DataFrame:
     pr_df.sort_values(by='date', inplace=True)
 
     return pr_df
-
-
-def filter_activities(activities: dict, start_date: datetime.date, end_date: datetime.date) -> dict:
-    """
-    Filter activities to the specified date range.
-
-    Args:
-        activities (dict): dictionary of activities
-        start_date (datetime.date): start of the date range to filter to
-        end_date (datetime.date): end of the date range to filter to
-
-    Returns:
-        dict: dictionary of activities that occurred within the filtered date range
-    """
-    # If no date range specified, return the original activities unmodified 
-    if start_date is None and end_date is None:
-        return activities
-    
-    # If only the start or end date is specified, set the opposite end of the date range accordingly
-    if start_date is None:
-        start_date = datetime.min.date()
-    if end_date is None:
-        end_date = datetime.max.date()
-        
-    # Filter the activities to the date range:
-    # We'll filter the activities for each sport type, and then attach each sport's filtered activities to `filtered_activities`
-    filtered_activities = {}
-    for sport_type in activities:
-        sport_type_activities = [] 
-        
-        for activity in activities[sport_type]:
-            # Fetch the activity's date and convert it to datetime.date object for comparison
-            activity_timestamp_date = datetime.strptime(
-                activity['start_date'],
-                "%Y-%m-%dT%H:%M:%SZ"
-            ).date()
-            
-            in_range = start_date <= activity_timestamp_date <= end_date        
-            if in_range:
-                sport_type_activities.append(activity)
-                
-        filtered_activities[sport_type] = sport_type_activities
-    
-    return filtered_activities
-
-
-def filter_races(races: dict, start_date: datetime.date, end_date: datetime.date) -> dict:
-    """
-    Filter races to the specified date range.
-
-    Args:
-        races (dict): dictionary of races/PRs
-        start_date (datetime.date): start of the date range to filter to
-        end_date (datetime.date): end of the date range to filter to
-
-    Returns:
-        dict: dictionary of races filtered to the date range
-    """
-    # if no date range specified, return the original races unmodified 
-    if start_date is None and end_date is None:
-        return races
-    
-    # If only the start or end date is specified, set the opposite end of the date range accordingly
-    if start_date is None:
-        start_date = datetime.min.date()
-    if end_date is None:
-        end_date = datetime.max.date()
-
-    filtered_races = {}
-    
-    for race_distance in races:
-        races_for_distance = []
-        for race in races[race_distance]:
-            race_timestamp_date = datetime.strptime(
-                race['start_date'],
-                "%Y-%m-%dT%H:%M:%SZ"
-            ).date()
-            
-            in_range = start_date <= race_timestamp_date <= end_date
-            if in_range:
-                races_for_distance.append(race)
-                
-        filtered_races[race_distance] = races_for_distance
-    
-    return filtered_races
 
 
 def mileage_vs_race_statistics(running_activities: dict) -> pd.DataFrame:
@@ -940,7 +866,7 @@ def generate_xlsx(filename: str, xlsx_config: list[WorkbookSheetConfig]):
             
             # If there's a figure to include, write it to the right of the data
             if xlsx_sheet.fig:
-                # save figure to image
+                # save figure to image (PNG)
                 buffer = BytesIO()
                 xlsx_sheet.fig.savefig(buffer, format="png", bbox_inches="tight") # svg for max zoom?
                 buffer.seek(0)
@@ -949,7 +875,7 @@ def generate_xlsx(filename: str, xlsx_config: list[WorkbookSheetConfig]):
                 # Write the image to the excel sheet: leave 2 blank columns between table and plot
                 ncols = len(xlsx_sheet.data.columns)
                 image_col = get_column_letter(ncols + 3)
-                ws.add_image(img, f"{image_col}1")
+                ws.add_image(img, f"{image_col}1") # write the image to the specific cell
 
 
 def generate_reports(activities: dict, pr_map: dict, race: str, filename: str):
@@ -1012,8 +938,7 @@ def main():
     
     if not args.use_cached:
         # Load data from the Strava API, if not operating in cached mode
-        activities_map = get_all_activities()
-        pr_map = get_personal_records(activities_map, TOP_N)    
+        activities_map, pr_map = get_activities_and_prs(args.start_date, args.end_date, TOP_N)
     else:
         print(f"Loading activities & PRs from JSON files in '{DATA_DIR}'...")
         try:
@@ -1026,21 +951,15 @@ def main():
             # If not, call the Strava API to fetch all activities & PRs.
             if not validate_pr_map(pr_map, TOP_N):
                 print("Local PR data doesn't contain sufficient data, calling Strava API to fetch all activities.")
-                activities_map = get_all_activities()
-                pr_map = get_personal_records(activities_map, TOP_N)
+                activities_map, pr_map = get_activities_and_prs(args.start_date, args.end_date, TOP_N)
             
         except FileNotFoundError as e:
             print(f"Activity data not found from local JSON files: {e}.")
             print("Loading data from Strava API instead!")
-            activities_map = get_all_activities()
-            pr_map = get_personal_records(activities_map, TOP_N)
-
-    # Filter activities and PRs to specified date range
-    activities_map_filtered = filter_activities(activities_map, args.start_date, args.end_date)
-    pr_map_filtered = filter_races(pr_map, args.start_date, args.end_date)
+            activities_map, pr_map = get_activities_and_prs(args.start_date, args.end_date, TOP_N)
 
     # Create reports (.pdf & .xlsx)
-    generate_reports(activities_map_filtered, pr_map_filtered, RACE_TYPE, OUTPUT_FILE)
+    generate_reports(activities_map, pr_map, RACE_TYPE, OUTPUT_FILE)
     
 
 if __name__ == "__main__":
