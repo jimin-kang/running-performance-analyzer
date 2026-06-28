@@ -1,4 +1,3 @@
-import json
 from stravalib import Client
 from strava_config import CLIENT_ID, CLIENT_SECRET
 from dotenv import set_key, find_dotenv

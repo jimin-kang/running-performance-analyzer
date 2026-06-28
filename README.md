@@ -58,13 +58,13 @@ After you authorize the app, you'll be redirected to an invalid page that looks 
 Paste the temp authorization code embedded in the URL into the console when prompted.
 Verify that your access token, refresh token, and token expiration time are written to your `.env`.
 ```
-py setup.py
+py src/setup.py
 ```
 
 5. Now, you're ready to run the app! Refer to **Usage** for the various options to run it. 
 You'll need to refresh the access token every 6 hours. To do so, run `refresh_token.py` and verify that your new token and expiration time is written to your `.env`.
 ```
-py refresh_token.py
+py src/refresh_token.py
 ```
 
 ### Usage
@@ -72,7 +72,7 @@ py refresh_token.py
 #### Syntax
 
 ```bash
-py main.py [OPTIONS]
+py src/main.py [OPTIONS]
 ```
 
 #### Arguments
@@ -89,7 +89,7 @@ py main.py [OPTIONS]
 #### Example
 To generate reports (named `5k_analysis.pdf/xlsx`) that visualize your top 10 historical 5K times:
 ```bash
-py main.py \
+py src/main.py \
     --distance 5K \
     --num-races 10 \
     --output 5k_analysis
@@ -97,7 +97,7 @@ py main.py \
 
 To generate those same reports but filtering it to visualize your top race times in 2025:
 ```bash
-py main.py \
+py src/main.py \
     --distance 5K \
     --num-races 10 \
     --start_date 2025-01-01 \
