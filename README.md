@@ -1,5 +1,5 @@
 ## Strava Analyzer
-Want to visualize the relationship between your running performance and your training? Then this app is for you!
+Want to visualize the relationship between your training and running performance? 
 
 This application allows anybody with a Strava subscription to analyze their race performance against their training volume (e.g. weekly mileage and cross-training volume). The app pulls the user's Strava data and generates two artifacts:
 - PDF report with two plots visualizing training volume against race PRs for a distance of their choice: 
@@ -22,7 +22,7 @@ Additionally, users must have:
 
 ### Project Structure
 Code:
-- `main.py`: main executable to generate the artifacts
+- `strava-analyzer.py`: main executable to generate the artifacts
 - `setup.py`: one-time setup for authorizing this app to collect your data and fetch API access tokens
 - `refresh_token.py`: script to run when your API access token expires (expire every 6 hours)
 
@@ -39,8 +39,8 @@ All the commands assume you're on Windows, but I'm sure a little googling can ge
 
 1. First, clone this repo & set up your [environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/):
 ```
-git clone _
-cd _
+git clone git@github.com:jimin-kang/running-performance-analyzer.git
+cd running-performance-analyzer
 py -m venv .venv
 source .venv/Scripts/activate
 pip install -r requirements.txt
@@ -52,14 +52,16 @@ pip install -r requirements.txt
 3. Create your `.env` as a clone of `.env.example`. Replace `STRAVA_CLIENT_ID` & `STRAVA_CLIENT_SECRET` with your Client ID & Client Secret for your API application.
 
 4. Run `setup.py` to authorize this app to read your Strava activities and to fetch your access token.
+
+```
+py src/setup.py
+```
+
 After you authorize the app, you'll be redirected to an invalid page that looks like this:
 ![temp_auth_code_page](images/temp_auth_code.png)
 
 Paste the temp authorization code embedded in the URL into the console when prompted.
 Verify that your access token, refresh token, and token expiration time are written to your `.env`.
-```
-py src/setup.py
-```
 
 5. Now, you're ready to run the app! Refer to **Usage** for the various options to run it. 
 You'll need to refresh the access token every 6 hours. To do so, run `refresh_token.py` and verify that your new token and expiration time is written to your `.env`.
@@ -72,7 +74,7 @@ py src/refresh_token.py
 #### Syntax
 
 ```bash
-py src/main.py [OPTIONS]
+py src/strava-analyzer.py [OPTIONS]
 ```
 
 #### Arguments
@@ -89,15 +91,15 @@ py src/main.py [OPTIONS]
 #### Example
 To generate reports (named `5k_analysis.pdf/xlsx`) that visualize your top 10 historical 5K times:
 ```bash
-py src/main.py \
+py src/strava-analyzer.py \
     --distance 5K \
     --num-races 10 \
     --output 5k_analysis
 ```
 
-To generate those same reports but filtering it to visualize your top race times in 2025:
+To generate reports that visualize your top 10 5K times in 2025:
 ```bash
-py src/main.py \
+py src/strava-analyzer.py \
     --distance 5K \
     --num-races 10 \
     --start_date 2025-01-01 \
@@ -117,5 +119,9 @@ py src/main.py \
 
 
 ### Future Scope
-- Migrate to interactive web application instead of generating static reports
+There's only so much you can get from static reports. 
+Future extensions include:
+- Migrate to interactive dashboard.
+- Include more running analysis beyond weekly mileage (e.g. analyze how different workouts impact race performance).
+- Analyze the relationship between training & race performance instead of simply visualizing it.
 

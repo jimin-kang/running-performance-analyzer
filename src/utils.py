@@ -97,6 +97,7 @@ def get_all_activities(start_date: date | None, end_date: date | None) -> dict:
             case _:
                 activities_map["other"].append(activity_dict)
 
+    # write data locally as JSON, so that we can pull activities from files in subsequent runs if needed
     write_dict_to_json(activities_map, Path(DATA_DIR), 'activities')    
     return activities_map
 
@@ -107,10 +108,10 @@ def get_activity_details(activity_id: str) -> dict:
     Note: Each call to client.get_activity() is a single API call.
 
     Args:
-        activity_id (str): _description_
+        activity_id (str): activity ID
 
     Returns:
-        dict: _description_
+        dict: dict containing activity details 
     """
     # Get activity details and its best efforts
     client = get_strava_client()
@@ -464,9 +465,9 @@ def visualize_weekly_mileage_vs_race(running_activities: dict, personal_records:
 
     # Create a line plot for race times
     pr_df = create_pr_df(personal_records, race)
-    ax2.plot(pr_df['year-week'], pr_df['time (seconds)'], 'o--r', label='Race Time', color='gold')
-    ax2.set_ylabel('Race Time (hh:mm:ss)', color='gold')
-    ax2.tick_params(axis='y', labelcolor='gold')
+    ax2.plot(pr_df['year-week'], pr_df['time (seconds)'], 'o--r', label='Race Time', color=RACE_LINE_PLOT_COLOR)
+    ax2.set_ylabel('Race Time (hh:mm:ss)', color=RACE_LINE_PLOT_COLOR)
+    ax2.tick_params(axis='y', labelcolor=RACE_LINE_PLOT_COLOR)
     
     # Convert race time to mm:ss format
     ax2.yaxis.set_major_formatter(ticker.FuncFormatter(seconds_to_hhmmss))
@@ -479,7 +480,7 @@ def visualize_weekly_mileage_vs_race(running_activities: dict, personal_records:
             xytext=(0, 5), # Offset: 0 points horizontally, 5 points vertically up
             textcoords='offset points', # Treat xytext as pixel offset
             fontsize=8,
-            color='gold',
+            color=RACE_LINE_PLOT_COLOR,
             weight='bold',
             ha="center", # Centers the text horizontally over the point
             va="bottom", # Positions the bottom of the text box above the point
@@ -632,9 +633,9 @@ def visualize_weekly_xtraining_vs_race(activities_dict: dict, personal_records: 
     pr_df['xpos'] = pr_df['year-week'].map(week_to_xpos)
     
     # Plot race times as dots attached by dashed line
-    ax2.plot(pr_df['xpos'], pr_df['time (seconds)'], 'o--r', label='Race Time', color='gold') # plot points as circles connected by dashed line
-    ax2.set_ylabel('Race Time (hh:mm:ss)', color='gold')
-    ax2.tick_params(axis='y', labelcolor='gold')
+    ax2.plot(pr_df['xpos'], pr_df['time (seconds)'], 'o--r', label='Race Time', color=RACE_LINE_PLOT_COLOR) # plot points as circles connected by dashed line
+    ax2.set_ylabel('Race Time (hh:mm:ss)', color=RACE_LINE_PLOT_COLOR)
+    ax2.tick_params(axis='y', labelcolor=RACE_LINE_PLOT_COLOR)
     
     # Convert elapsed time to mm:ss format
     ax1.yaxis.set_major_formatter(ticker.FuncFormatter(seconds_to_hhmmss))
@@ -648,7 +649,7 @@ def visualize_weekly_xtraining_vs_race(activities_dict: dict, personal_records: 
             xytext=(0, 5), # Offset: 0 points horizontally, 5 points vertically up
             textcoords='offset points', # Treat xytext as pixel offset
             fontsize=8,
-            color='gold',
+            color=RACE_LINE_PLOT_COLOR,
             weight='bold',
             ha="center", # Centers the text horizontally over the point
             va="bottom", # Positions the bottom of the text box above the point
@@ -696,7 +697,7 @@ def visualize_weekly_xtraining_vs_race(activities_dict: dict, personal_records: 
 ################################
 # GENERAL UTILITIES
 ################################
-def parse_date(date_str) -> datetime.date:
+def parse_date(date_str: str) -> datetime.date:
     """Define date string format required for input arguments.
 
     Args:

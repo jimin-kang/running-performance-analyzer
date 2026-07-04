@@ -27,3 +27,4 @@ DATA_DIR = "strava_data"
 ACTIVITIES_FILE = "activities"
 PR_FILE = "personal_records"
 OUTPUT_DIR = Path("reports") 
+RACE_LINE_PLOT_COLOR = 'red'
