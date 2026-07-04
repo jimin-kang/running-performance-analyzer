@@ -79,14 +79,14 @@ py src/strava-analyzer.py [OPTIONS]
 
 #### Arguments
 
-| Flag | Required | Default | Description | Example |
-|------|----------|----------|----------|-------------|
-| `-d`, `--distance` | Yes | N/A | Race distance to analyze. Values must be one of the following: "1 mile", "5K", "10K", "10 mile", "Half-Marathon", "Marathon". | "1 mile" |
-| `-n`, `--num-races` | No | 5 | Number of races to analyze for the selected distance. I.e. if you want the top 10 races displayed in the plots, specify 10. | 10 |
-| `--start-date` | No | N/A | Start date (YYYY-MM-DD) of the date range that you want to filter races & activities to. If not supplied, the app will pull activities starting from your first Strava activity. | `2026-01-01` |
-| `--end-date` | No | N/A | End date (YYYY-MM-DD) of the date range that you want to filter races & activities to. If not supplied, the app will pull all historical activities after the `start-date`. | `2026-06-01` |
-| `--use-cached` | No | `False` | Boolean flag to generate reports using the data in the `strava_data` folder. If not supplied, the app will default to fetch data from the Strava API. Additionally, if the cached data doesn't contain `num-races` data points for the specified race, the app will call the Strava API to get all activities.  | `--use-cached` |
-| `-o`, `--output` | No | `{distance}_report_{timestamp}` | File name (w/o the extension) for the .pdf & .xlsx workbook generated. | `marathon_analysis` |
+| Short | Long | Required | Default | Description | Example |
+|-------|------|----------|---------|-------------|---------|
+| `-d` | `--distance` | Yes | N/A | Race distance to analyze. Values must be one of the following: "1 mile", "5K", "10K", "10 mile", "Half-Marathon", "Marathon". | "1 mile" |
+| `-n` | `--num-races` | No | 5 | Number of races to analyze for the selected distance. I.e. if you want the top 10 races displayed in the plots, specify 10. | 10 |
+| | `--start-date` | No | N/A | Start date (YYYY-MM-DD) of the date range that you want to filter races & activities to. If not supplied, the app will pull activities starting from your first Strava activity. | `2026-01-01` |
+| | `--end-date` | No | N/A | End date (YYYY-MM-DD) of the date range that you want to filter races & activities to. If not supplied, the app will pull all historical activities after the `start-date`. | `2026-06-01` |
+| | `--use-cached` | No | `False` | Boolean flag to generate reports using the data in the `strava_data` folder. If not supplied, the app will default to fetch data from the Strava API. Additionally, if the cached data doesn't contain `num-races` data points for the specified race, the app will call the Strava API to get all activities.  | `--use-cached` |
+| `-o` | `--output` | No | `{distance}_report_{timestamp}` | File name (w/o the extension) for the .pdf & .xlsx workbook generated. | `marathon_analysis` |
 
 #### Example
 To generate reports (named `5k_analysis.pdf/xlsx`) that visualize your top 10 historical 5K times:
