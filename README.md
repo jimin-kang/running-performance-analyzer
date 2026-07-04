@@ -10,6 +10,8 @@ This application allows anybody with a Strava subscription to analyze their race
 ![mileage_vs_races](images/mileage_vs_races.png)
 ![xtraining_vs_races](images/xtraining_vs_races.png)
 
+Check out the article on [Medium](https://medium.com/@jimin.kang821/from-strava-data-to-race-insights-building-a-tool-to-understand-training-and-race-performance-49d377de6f54).
+
 ### Requirements
 Users must have the following installed:
 - Python 3.10+
@@ -108,7 +110,7 @@ py src/strava-analyzer.py \
 ```
 
 
-## Notes
+### Notes
 - Dates must be specified in `YYYY-MM-DD` format.
 - If no date range is specified, all historical races & activities will be processed.
 - Existing output files will be overwritten.
